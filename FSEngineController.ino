@@ -21,7 +21,7 @@ volatile int lastState = LOW;
 #define PROP  1
 #define MIXTURE  2
 volatile unsigned short SELECTED = 0;
-volatile unsigned short value[3] = {0,0,0};
+volatile unsigned short value[3] = {0,250,250};
 
 volatile unsigned short engineCommand = 0;
 
@@ -62,7 +62,11 @@ void setup() {
   joy.setAcceleratorRange(0, 250);
   joy.setBrakeRange(0, 250);
 
-  setColor(THROTTLE);
+  joy.setThrottle(value[THROTTLE]);
+  joy.setAccelerator(value[PROP]);
+  joy.setBrake(value[MIXTURE]);
+
+  selectEngine(THROTTLE);
 }
 
 void loop() {
@@ -70,7 +74,7 @@ void loop() {
   unsigned char cE = digitalRead(CYCLE_ENGINE_COMMAND);
   if( cE == LOW ) {
     engineCommand = (engineCommand + 1) % 3;
-    setColor(engineCommand);
+    selectEngine(engineCommand);
     Serial.print("Cycle Engine ");Serial.println(engineCommand);
     delay(350);
     return;
@@ -112,7 +116,7 @@ void push_engine_value() {
 
 }
 
-void setColor(uint16_t selection) {
+void selectEngine(uint16_t selection) {
   switch(selection) {
     case THROTTLE: // THROTTLE. WHITE
       analogWrite(BLUE_LED, 250);
