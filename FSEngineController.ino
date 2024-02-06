@@ -24,8 +24,8 @@ volatile int lastState = LOW;
 #define PROP  1
 #define MIXTURE  2
 
-volatile unsigned short SELECTED = 0;
-volatile unsigned short value[3] = {0,250,250};
+volatile int SELECTED = 0;
+volatile int value[3] = {0,250,250};
 
 volatile unsigned short engineCommand = 0;
 
@@ -105,6 +105,10 @@ void push_engine_value() {
     } else  {
       value[SELECTED] -= STEPS;
     }
+
+    #ifdef DEBUG
+      Serial.print("value[SELECTED]: "); Serial.println(value[SELECTED]);
+    #endif
 
     int l = constrain(value[SELECTED], 0, 250);
     value[SELECTED] = l;
