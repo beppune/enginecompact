@@ -24,10 +24,10 @@ volatile int lastState = LOW;
 #define PROP  1
 #define MIXTURE  2
 
+unsigned long engineSelectDelay;
+
 volatile int SELECTED = 0;
 volatile int value[3] = {0,250,250};
-
-volatile unsigned short engineCommand = 0;
 
 volatile unsigned long timestamp;
 
@@ -71,6 +71,8 @@ void setup() {
 
   selectEngine(THROTTLE);
 
+  engineSelectDelay = millis();
+
   #ifdef DEBUG
     Serial.begin(9600);
   #endif
@@ -79,7 +81,7 @@ void setup() {
 void loop() {
 
   unsigned char cE = digitalRead(CYCLE_ENGINE_COMMAND);
-  if( cE == LOW ) {
+  if( ( millis() - engineSelectDelay ) >= 350 && cE == LOW ) {
     SELECTED = (SELECTED + 1) % 3;
     selectEngine(SELECTED);
     
@@ -87,8 +89,7 @@ void loop() {
       Serial.print("Cycle Engine ");Serial.println(SELECTED);
     #endif
     
-    delay(350);
-    return;
+    engineSelectDelay = millis();
   }
 
 }
