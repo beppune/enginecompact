@@ -1,5 +1,8 @@
 #include <Joystick.h>
 
+#define DEBUG
+//#undef  DEBUG
+
 #define CW 3
 #define DT 2
 #define CYCLE_ENGINE_COMMAND 8
@@ -20,6 +23,7 @@ volatile int lastState = LOW;
 #define THROTTLE  0
 #define PROP  1
 #define MIXTURE  2
+
 volatile unsigned short SELECTED = 0;
 volatile unsigned short value[3] = {0,250,250};
 
@@ -50,7 +54,6 @@ void setup() {
   pinMode(DT, INPUT);
   pinMode(CYCLE_ENGINE_COMMAND, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(CW), push_engine_value, CHANGE);
-  Serial.begin(9600);
   timestamp = millis();
 
   pinMode(BLUE_LED, INPUT);
@@ -67,15 +70,23 @@ void setup() {
   joy.setBrake(value[MIXTURE]);
 
   selectEngine(THROTTLE);
+
+  #ifdef DEBUG
+    Serial.begin(9600);
+  #endif
 }
 
 void loop() {
 
   unsigned char cE = digitalRead(CYCLE_ENGINE_COMMAND);
   if( cE == LOW ) {
-    engineCommand = (engineCommand + 1) % 3;
-    selectEngine(engineCommand);
-    Serial.print("Cycle Engine ");Serial.println(engineCommand);
+    SELECTED = (SELECTED + 1) % 3;
+    selectEngine(SELECTED);
+    
+    #ifdef DEBUG
+      Serial.print("Cycle Engine ");Serial.println(SELECTED);
+    #endif
+    
     delay(350);
     return;
   }
@@ -90,9 +101,9 @@ void push_engine_value() {
   int state = digitalRead(CW);
   if( state != lastState ) {
     if( state = digitalRead(DT) ) {
-      value[SELECTED] -= STEPS;
-    } else  {
       value[SELECTED] += STEPS;
+    } else  {
+      value[SELECTED] -= STEPS;
     }
 
     int l = constrain(value[SELECTED], 0, 250);
@@ -101,12 +112,21 @@ void push_engine_value() {
     switch(SELECTED) {
       case THROTTLE:
         joy.setThrottle(value[SELECTED]);
+        #ifdef DEBUG
+          Serial.print("THROTTLE: ");Serial.println(value[SELECTED]);
+        #endif
         break;
       case PROP:
         joy.setAccelerator(value[SELECTED]);
+        #ifdef DEBUG
+          Serial.print("PROP: ");Serial.println(value[SELECTED]);
+        #endif
         break;
       case MIXTURE:
         joy.setBrake(value[SELECTED]);
+        #ifdef DEBUG
+          Serial.print("MIXTURE: ");Serial.println(value[SELECTED]);
+        #endif
         break;
     }
 
